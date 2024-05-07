@@ -25,9 +25,11 @@ while True:
     mails = len(mail_ids)
     if not max_id:
         max_id = len(mail_ids)
+        mail.logout()
         sleep(60)
         continue
     elif mails == max_id:
+        mail.logout()
         sleep(60)
         continue
 
