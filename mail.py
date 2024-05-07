@@ -9,12 +9,10 @@ from envs import *
 
 max_id = None
 
-mail = imaplib.IMAP4_SSL(SERVER)
 
 while True:
-    print(mail.state)
-    if mail.state == "NONAUTH":
-        mail.login(EMAIL, PASSWORD)
+    mail = imaplib.IMAP4_SSL(SERVER)
+    mail.login(EMAIL, PASSWORD)
     mail.select("inbox")
     status, data = mail.search(None, "FROM", '"Secret Flying"')
 
