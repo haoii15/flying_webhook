@@ -12,7 +12,8 @@ max_id = None
 mail = imaplib.IMAP4_SSL(SERVER)
 
 while True:
-    mail.login(EMAIL, PASSWORD)
+    if mail.state() == "NONAUTH":
+        mail.login(EMAIL, PASSWORD)
     mail.select("inbox")
     status, data = mail.search(None, "FROM", '"Secret Flying"')
 
@@ -201,4 +202,5 @@ while True:
 
                 r = requests.post(WEBHOOK, json=item)
     max_id = mails
+    mail.logout()
     sleep(60)
