@@ -24,11 +24,11 @@ while True:
     if not max_id:
         max_id = len(mail_ids)
         mail.logout()
-        sleep(60)
+        sleep(900)
         continue
     elif mails == max_id:
         mail.logout()
-        sleep(60)
+        sleep(900)
         continue
 
     mail_ids = mail_ids[max_id:]
@@ -204,4 +204,4 @@ while True:
                 r = requests.post(WEBHOOK, json=item)
     max_id = mails
     mail.logout()
-    sleep(60)
+    sleep(900)
