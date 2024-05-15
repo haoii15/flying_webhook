@@ -19,6 +19,7 @@ while True:
             status, data = mail.search(None, "FROM", '"Secret Flying"')
             break
         except:
+            sleep(10)
             continue
     mail_ids = []
     for block in data:
