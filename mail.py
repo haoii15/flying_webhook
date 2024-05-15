@@ -11,11 +11,15 @@ max_id = None
 
 
 while True:
-    mail = imaplib.IMAP4_SSL(SERVER)
-    mail.login(EMAIL, PASSWORD)
-    mail.select("inbox")
-    status, data = mail.search(None, "FROM", '"Secret Flying"')
-
+    while True:
+        try:
+            mail = imaplib.IMAP4_SSL(SERVER)
+            mail.login(EMAIL, PASSWORD)
+            mail.select("inbox")
+            status, data = mail.search(None, "FROM", '"Secret Flying"')
+            break
+        except:
+            continue
     mail_ids = []
     for block in data:
         mail_ids += block.split()
