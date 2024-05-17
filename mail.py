@@ -14,7 +14,7 @@ mail.login(EMAIL, PASSWORD)
 mail.select("inbox")
 
 while True:
-    status, data = mail.search(None, "FROM", '"Secret Flying"')
+    status, data = mail.search(None, "FROM", f"{SOURCE}")
 
     mail_ids = []
     for block in data:
