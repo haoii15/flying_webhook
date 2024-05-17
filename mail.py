@@ -9,13 +9,19 @@ from envs import *
 
 max_id = None
 
-mail = imaplib.IMAP4_SSL(SERVER)
-mail.login(EMAIL, PASSWORD)
-mail.select("inbox")
 
 while True:
-    status, data = mail.search(None, "FROM", f"{SOURCE}")
 
+    while True:
+        try:
+            mail = imaplib.IMAP4_SSL(SERVER)
+            mail.login(EMAIL, PASSWORD)
+            mail.select("inbox")
+            status, data = mail.search(None, "FROM", f"{SOURCE}")
+            break
+        except:
+            sleep(10)
+            continue
     mail_ids = []
     for block in data:
         mail_ids += block.split()
@@ -23,10 +29,12 @@ while True:
     mails = len(mail_ids)
     if not max_id:
         max_id = len(mail_ids)
-        sleep(60)
+        mail.logout()
+        sleep(900)
         continue
     elif mails == max_id:
-        sleep(60)
+        mail.logout()
+        sleep(900)
         continue
 
     mail_ids = mail_ids[max_id:]
@@ -201,4 +209,5 @@ while True:
 
                 r = requests.post(WEBHOOK, json=item)
     max_id = mails
-    sleep(60)
+    mail.logout()
+    sleep(900)
