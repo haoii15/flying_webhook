@@ -17,7 +17,7 @@ while True:
             mail = imaplib.IMAP4_SSL(SERVER)
             mail.login(EMAIL, PASSWORD)
             mail.select("inbox")
-            status, data = mail.search(None, "FROM", f"{SOURCE}")
+            status, data = mail.search(None, "FROM", f'{SOURCE}')
             break
         except:
             sleep(10)
