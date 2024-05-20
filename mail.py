@@ -21,6 +21,7 @@ while True:
             break
         except:
             sleep(10)
+            print("error while loging in")
             continue
     mail_ids = []
     for block in data:
