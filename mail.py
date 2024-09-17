@@ -205,8 +205,13 @@ while True:
                                     },
                                 ],
                             }
-                        ]
+                        ],
                     }
+                item["content"] = (
+                    "<@&1285299461785911397>" + " <@&1285299507642368130>"
+                    if "business" in ps[0].text.lower()
+                    else ""
+                )
 
                 r = requests.post(WEBHOOK, json=item)
     max_id = mails
