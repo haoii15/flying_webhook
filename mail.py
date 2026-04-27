@@ -2,7 +2,6 @@ import email
 import imaplib
 from time import sleep
 import requests
-import requests
 from bs4 import BeautifulSoup
 from envs import *
 
@@ -23,6 +22,7 @@ while True:
             sleep(10)
             print("error while loging in")
             continue
+
     mail_ids = []
     for block in data:
         mail_ids += block.split()
@@ -63,15 +63,29 @@ while True:
                 multicity = False
 
                 soup = BeautifulSoup(mail_content, "html.parser")
-                results = soup.find_all(id="u_column_6")
-                wanted_data = results[1]
+
+                # Title is now in u_column_6 (the only occurrence) inside an h2
+                title_col = soup.find(id="u_column_6")
+                title_text = ""
+                if title_col:
+                    h2 = title_col.find("h2")
+                    if h2:
+                        title_text = h2.get_text(strip=True)
+
+                # Deal content is now in u_column_5
+                wanted_data = soup.find(id="u_column_5")
+                if not wanted_data:
+                    continue
+
                 with open("mail.html", "w") as f:
                     f.write(wanted_data.prettify())
+
                 ps = wanted_data.find_all("p")
                 for p in ps:
-                    if p.text.startswith("DEPART"):
+                    text = p.get_text(separator="\n", strip=True)
+                    if text.startswith("DEPART"):
                         depart = ""
-                        cities = p.text.split("\n")[1:]
+                        cities = text.split("\n")[1:]
                         multicity = True if len(cities) > 1 else False
                         multilist = []
                         for city in cities:
@@ -81,14 +95,17 @@ while True:
                             else:
                                 multilist.append(city)
                             depart += city + "\n"
-                    if p.text.startswith("ARRIVE"):
+                    if text.startswith("ARRIVE"):
                         arrive = ""
-                        for city in p.text.split("\n")[1:]:
+                        for city in text.split("\n")[1:]:
                             arrive += city + "\n"
-                    if p.text.startswith("DATES"):
-                        date_info = p.text.split("\n")[1]
-                    if p.text.startswith("AIRLINES"):
-                        airlines = p.text.split("\n")[1]
+                    if text.startswith("DATES"):
+                        # New format: "DATES:\nAvailability in\nMarch 2027"
+                        lines = text.split("\n")
+                        # Join everything after "DATES:" as the date_info
+                        date_info = " ".join(lines[1:]).strip()
+                    if text.startswith("AIRLINES"):
+                        airlines = text.split("\n")[1] if len(text.split("\n")) > 1 else ""
 
                 if multicity:
                     resp = requests.get(PEXELSURL + arrive, headers=HEADERS)
@@ -99,7 +116,7 @@ while True:
                     item = {
                         "embeds": [
                             {
-                                "title": ps[0].text,
+                                "title": title_text,
                                 "description": date_info,
                                 "color": 15844367,
                                 "url": url,
@@ -128,12 +145,13 @@ while True:
                     for p in ps:
                         for city in multilist:
                             city = city.split(",")[0]
-                            if p.text.startswith(city):
-                                chops = p.text.split("\n")
+                            text = p.get_text(separator="\n", strip=True)
+                            if text.startswith(city):
+                                chops = text.split("\n")
                                 date_string = ""
                                 date_num = 0
-                                for i, chop in enumerate(chops):
-                                    if i == 0:
+                                for idx, chop in enumerate(chops):
+                                    if idx == 0:
                                         title = chop
                                         continue
                                     try:
@@ -153,6 +171,7 @@ while True:
                                     },
                                 )
                 else:
+                    # New format: all deal links share the same href, grab it from "GO TO DEAL"
                     dates = wanted_data.find_all("a")
                     date_num = 0
                     for date in dates:
@@ -160,10 +179,10 @@ while True:
                             if date_num == 10:
                                 date_string += "..."
                                 break
-                            if date.text.startswith("GO TO DEAL"):
+                            if date.text.strip() == "GO TO DEAL":
                                 url = date["href"]
-                            if date.text[0] in "1234567890":
-                                date_string += date.text + "\n"
+                            if date.text.strip() and date.text.strip()[0] in "1234567890":
+                                date_string += date.text.strip() + "\n"
                                 date_num += 1
                         except:
                             pass
@@ -177,7 +196,7 @@ while True:
                     item = {
                         "embeds": [
                             {
-                                "title": ps[0].text,
+                                "title": title_text,
                                 "description": date_info,
                                 "color": 15844367,
                                 "url": url,
@@ -207,13 +226,14 @@ while True:
                             }
                         ],
                     }
-                item["content"] = "<@&1285299461785911397>" + (
+                item["content"] = "<@&1285299461785931397>" + (
                     " <@&1285299507642368130>"
-                    if "business" in ps[0].text.lower()
+                    if "business" in title_text.lower()
                     else ""
                 )
 
                 r = requests.post(WEBHOOK, json=item)
+
     max_id = mails
     mail.logout()
     sleep(900)
