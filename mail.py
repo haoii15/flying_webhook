@@ -226,7 +226,7 @@ while True:
                             }
                         ],
                     }
-                item["content"] = "<@&1285299461785931397>" + (
+                item["content"] = "<@&1285299461785911397>" + (
                     " <@&1285299507642368130>"
                     if "business" in title_text.lower()
                     else ""
